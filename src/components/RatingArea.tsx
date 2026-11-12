@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coffee } from 'lucide-react';
 import './RatingArea.css';
 
 // Official Google 'G' 4-color SVG Icon
@@ -361,7 +361,7 @@ export const RatingArea: React.FC = () => {
 
         {/* Subtle Roaster Assurance Note */}
         <div className="reviews-footer-note">
-          <span className="roast-bean-icon" aria-hidden="true">☕</span>
+          <Coffee size={18} className="text-orange" aria-hidden="true" style={{ color: '#D95F2D', flexShrink: 0 }} />
           <span>Every cup served at Overflow Coffee is freshly roasted in small batches by <strong>The Roast Room</strong> in Lucknow.</span>
         </div>
       </div>

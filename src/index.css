@@ -35,7 +35,43 @@
 
 html {
   scroll-behavior: smooth;
-  font-size: 16px;
+  font-size: 16.5px;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1800px) {
+  html {
+    font-size: 17.5px;
+  }
+}
+
+@media (min-width: 2200px) {
+  html {
+    font-size: 19px;
+  }
 }
 
 body {
@@ -44,6 +80,8 @@ body {
   color: var(--forest);
   line-height: 1.6;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -55,6 +93,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   letter-spacing: -0.02em;
   color: inherit;
   line-height: 1.15;
+  text-wrap: balance;
 }
 
 /* Links & interactive */
@@ -75,13 +114,25 @@ input, textarea, select {
   font-family: var(--font-body);
 }
 
+/* Application root containers safeguard */
+#root,
+.roast-room-app {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  min-width: 0;
+  position: relative;
+}
+
 /* Canvas container for coffee grain dispersion */
 #coffee-grain-canvas {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   pointer-events: none;
   z-index: 1;
 }
@@ -89,9 +140,9 @@ input, textarea, select {
 /* Layout container */
 .container {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
   position: relative;
   z-index: 2;
 }
@@ -102,18 +153,44 @@ input, textarea, select {
   }
 }
 
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1560px;
+    padding: 0 3rem;
+  }
+}
+
+@media (min-width: 2200px) {
+  .container {
+    max-width: 1840px;
+    padding: 0 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+}
+
 /* Standard Buttons */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   background-color: var(--orange);
   color: var(--cream);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
   letter-spacing: 0.01em;
-  padding: 0.85rem 1.85rem;
+  padding: 0.92rem 2.05rem;
   border-radius: var(--radius-pill);
   transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
   box-shadow: 0 4px 14px rgba(217, 95, 45, 0.25);
@@ -173,6 +250,38 @@ input, textarea, select {
   background-color: var(--cream);
   color: var(--forest);
   transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .btn-primary,
+  .btn-outline-forest,
+  .btn-outline-cream {
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .btn-primary {
+    padding: 0.8rem 1.4rem;
+    font-size: 0.95rem;
+  }
+  .btn-outline-forest,
+  .btn-outline-cream {
+    padding: 0.7rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .btn-primary {
+    padding: 0.72rem 1.15rem;
+    font-size: 0.88rem;
+  }
+  .btn-outline-forest,
+  .btn-outline-cream {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
 }
 
 /* Badges & Pills */

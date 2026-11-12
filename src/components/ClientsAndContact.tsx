@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Coffee, Building, Utensils, Briefcase } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Coffee, Building, Utensils, Briefcase, Tag } from 'lucide-react';
+import { FSSAIComplianceBadge } from './BrandIcons';
 
 export const ClientsAndContact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +9,10 @@ export const ClientsAndContact: React.FC = () => {
     businessType: 'Cafe',
     phone: '',
     email: '',
+    serviceInterest: 'Sample Pack',
+    coffeeFormat: 'Whole Beans',
     brewMethods: ['Espresso'],
+    bookCuppingSession: false,
     city: '',
     notes: '',
   });
@@ -16,7 +20,7 @@ export const ClientsAndContact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleCheckboxChange = (method: string) => {
+  const handleBrewMethodToggle = (method: string) => {
     setFormData((prev) => {
       const exists = prev.brewMethods.includes(method);
       return {
@@ -31,39 +35,44 @@ export const ClientsAndContact: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    // Simulate swift confirmation
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
     }, 600);
   };
 
-  // Partner segments (honest representation without inventing fake corporate names)
+  // Partner segments with White-Label Branding added
   const partnerTypes = [
-    { icon: Coffee, title: 'Specialty Coffee Bars', desc: 'Dialed-in beans for consistent morning espresso lines.' },
-    { icon: Building, title: 'Boutique Hotels', desc: 'Distinctive breakfast and lounge roast profiles.' },
-    { icon: Utensils, title: 'Independent Restaurants', desc: 'Custom blends pairing cleanly with dinner menus.' },
-    { icon: Briefcase, title: 'Corporate Offices', desc: 'Freshly roasted whole beans for work teams.' },
+    { icon: Coffee, title: 'Specialty Coffee Bars', desc: 'Dialed-in roast profiles and cupping sessions for barista consistency.' },
+    { icon: Tag, title: 'White-Label Café Partners', desc: 'Your beans packaged in custom foil packets with your café branding.' },
+    { icon: Building, title: 'Boutique Hotels & Stays', desc: 'Distinctive breakfast and lounge roast profiles with reliable delivery.' },
+    { icon: Utensils, title: 'Independent Restaurants', desc: 'Custom blends pairing cleanly with dinner menus and desserts.' },
+    { icon: Briefcase, title: 'Corporate Workspaces', desc: 'Freshly roasted whole beans and pre-ground coffee for office teams.' },
   ];
 
   return (
     <section id="contact" className="section-padding clients-contact-section">
       <div className="container">
         {/* Partner Sectors Overview */}
-        <div className="section-header text-center">
+        <div className="section-header text-center" data-reveal="fade-up">
           <span className="pill-tag pill-forest">WHO WE ROAST FOR</span>
-          <h2 className="section-title">Built for hospitality & workspaces.</h2>
+          <h2 className="section-title">Built for hospitality, cafés & home brewers.</h2>
           <p className="section-subtitle">
-            Reliable roasting schedules and customized profiles across Lucknow and partner cities.
+            Reliable roasting schedules, white-label café packaging, and hands-on cupping sessions in Lucknow.
           </p>
         </div>
 
-        {/* 4 Partner Type Cards */}
-        <div className="partner-types-grid">
+        {/* Partner Type Cards */}
+        <div className="partner-types-grid partner-types-grid-five">
           {partnerTypes.map((item, idx) => {
             const Icon = item.icon;
+            const staggerClass = `stagger-${(idx % 5) + 1}`;
             return (
-              <div key={idx} className="partner-type-card">
+              <div
+                key={idx}
+                className={`partner-type-card ${staggerClass}`}
+                data-reveal="pop"
+              >
                 <div className="partner-icon-circle">
                   <Icon size={22} className="text-orange" />
                 </div>
@@ -74,9 +83,9 @@ export const ClientsAndContact: React.FC = () => {
           })}
         </div>
 
-        {/* Honest Partner Perspectives (grounded, no fake awards or claims) */}
+        {/* Honest Partner Perspectives */}
         <div className="partner-quotes-strip">
-          <div className="quote-card">
+          <div className="quote-card stagger-1" data-reveal="fade-left">
             <p className="quote-text">
               “The roast consistency makes dial-in straightforward every morning. The body and crema on our double shots are right where we need them to be.”
             </p>
@@ -86,27 +95,26 @@ export const ClientsAndContact: React.FC = () => {
             </div>
           </div>
 
-          <div className="quote-card">
+          <div className="quote-card stagger-2" data-reveal="fade-right">
             <p className="quote-text">
-              “We wanted an exclusive blend with clear chocolate and hazelnut notes for our breakfast service. The team tested three curves before we locked it in.”
+              “We brought our head baristas to test shots on their commercial machines before launching. The cupping session helped us dial in the exact flavor profile we wanted.”
             </p>
             <div className="quote-author">
-              <strong>Head of Food & Beverage</strong>
-              <span>Hospitality Partner</span>
+              <strong>Specialty Coffee Director</strong>
+              <span>Lucknow Coffee House</span>
             </div>
           </div>
         </div>
 
         {/* Main Enquiry & Sample Request Section */}
-        <div className="enquiry-box-container">
+        <div className="enquiry-box-container stagger-1" data-reveal="pop">
           <div className="enquiry-card-grid">
             {/* Left: Contact Info & Roastery details */}
             <div className="enquiry-info-pane bg-forest">
               <span className="pill-tag pill-orange">GET IN TOUCH</span>
               <h3 className="enquiry-info-title">Talk to our roaster.</h3>
               <p className="enquiry-info-p">
-                Whether you are opening a new cafe, updating your current beans, or looking for
-                whole bean supply, we are happy to chat through options.
+                Whether you are opening a new café, launching white-label coffee with your own branding, booking a cupping session, or ordering ground coffee for home brewing.
               </p>
 
               <div className="contact-details-list">
@@ -114,7 +122,7 @@ export const ClientsAndContact: React.FC = () => {
                   <MapPin size={20} className="contact-icon text-orange" />
                   <div>
                     <strong>The Roast Room Roastery</strong>
-                    <p>Ground floor, 1/59, Vastu Khand, Gomti Nagar, Lucknow 226010, Uttar Pradesh</p>
+                    <p>Ground floor, 1/58, Vastu Khand, Gomti Nagar, Lucknow 226010, Uttar Pradesh</p>
                   </div>
                 </div>
 
@@ -135,9 +143,14 @@ export const ClientsAndContact: React.FC = () => {
                 </div>
               </div>
 
+              {/* Verified Food Safety Certification */}
+              <div className="contact-fssai-box">
+                <FSSAIComplianceBadge variant="compact" />
+              </div>
+
               <div className="sample-dispatch-note">
                 <div className="dispatch-badge">48-Hour Dispatch</div>
-                <p>We roast sample batches to order so you receive beans within days of roasting.</p>
+                <p>Samples roasted and dispatched following proper degassing so you experience peak balanced flavor.</p>
               </div>
             </div>
 
@@ -146,14 +159,14 @@ export const ClientsAndContact: React.FC = () => {
               {submitted ? (
                 <div className="form-success-card">
                   <CheckCircle2 size={52} className="text-orange" />
-                  <h3>Sample request received.</h3>
+                  <h3>Inquiry received.</h3>
                   <p>
                     Thank you, <strong>{formData.fullName || 'Partner'}</strong>. We have logged your request
-                    for <strong>{formData.businessName || 'your bar'}</strong>.
+                    for <strong>{formData.businessName || 'your setup'}</strong> ({formData.serviceInterest}).
                   </p>
                   <p className="success-sub">
-                    Our roasting team will review your brew preferences and contact you at{' '}
-                    <strong>{formData.phone || formData.email}</strong> within 24 hours to confirm your sample pack.
+                    Our roasting team will contact you at{' '}
+                    <strong>{formData.phone || formData.email}</strong> to coordinate your sample dispatch or schedule your roastery tasting session.
                   </p>
                   <button
                     type="button"
@@ -166,7 +179,10 @@ export const ClientsAndContact: React.FC = () => {
                         businessType: 'Cafe',
                         phone: '',
                         email: '',
+                        serviceInterest: 'Sample Pack',
+                        coffeeFormat: 'Whole Beans',
                         brewMethods: ['Espresso'],
+                        bookCuppingSession: false,
                         city: '',
                         notes: '',
                       });
@@ -178,10 +194,41 @@ export const ClientsAndContact: React.FC = () => {
               ) : (
                 <form className="sample-form" onSubmit={handleSubmit}>
                   <div className="form-header">
-                    <h3 className="form-title">Request a sample</h3>
+                    <h3 className="form-title">Request a sample or tasting session</h3>
                     <p className="form-sub">
-                      Tell us what you brew. We will send freshly roasted samples tailored to your bar.
+                      Tell us what you brew. We will send freshly roasted samples or invite your team for an in-roastery cupping session.
                     </p>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="serviceInterest">What is your primary interest?</label>
+                      <select
+                        id="serviceInterest"
+                        value={formData.serviceInterest}
+                        onChange={(e) => setFormData({ ...formData, serviceInterest: e.target.value })}
+                      >
+                        <option value="Free B2B Sample Pack">Free B2B Coffee Sample Pack</option>
+                        <option value="White-Label Coffee Branding">White-Label Branding (Coffee in our cafe's packets)</option>
+                        <option value="Cupping & Tasting Session Slot">Book a Cupping & Espresso Tasting Session in Lucknow</option>
+                        <option value="Custom Roast Profiling">Custom Roast Profiling for our Bar</option>
+                        <option value="B2B Wholesale Supply">B2B Wholesale Supply</option>
+                        <option value="Home Brewer Order">Retail Whole Beans / Ground Coffee (Home Brewer)</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="coffeeFormat">Format Preference</label>
+                      <select
+                        id="coffeeFormat"
+                        value={formData.coffeeFormat}
+                        onChange={(e) => setFormData({ ...formData, coffeeFormat: e.target.value })}
+                      >
+                        <option value="Whole Beans">Whole Beans (For grinders & espresso bars)</option>
+                        <option value="Ground Coffee">Freshly Ground (No grinder needed at home)</option>
+                        <option value="Both">Both Whole Beans & Ground</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="form-row">
@@ -203,7 +250,7 @@ export const ClientsAndContact: React.FC = () => {
                         type="text"
                         id="businessName"
                         required
-                        placeholder="e.g. Blue Door Coffee"
+                        placeholder="e.g. Blue Door Coffee or Home Brewer"
                         value={formData.businessName}
                         onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                       />
@@ -218,11 +265,12 @@ export const ClientsAndContact: React.FC = () => {
                         value={formData.businessType}
                         onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
                       >
-                        <option value="Cafe">Cafe / Coffee Bar</option>
-                        <option value="Hotel">Hotel / Resort</option>
+                        <option value="Cafe">Cafe / Specialty Coffee Bar</option>
+                        <option value="White-Label Partner">White-Label Partner (Our Own Brand)</option>
+                        <option value="Hotel">Hotel / Resort Hospitality</option>
                         <option value="Restaurant">Restaurant / Bistro</option>
                         <option value="Corporate">Corporate Workspace</option>
-                        <option value="Retail">Retail Store</option>
+                        <option value="Home Brewer">Home Brewer (Personal)</option>
                       </select>
                     </div>
 
@@ -256,7 +304,6 @@ export const ClientsAndContact: React.FC = () => {
                       <label htmlFor="email">Email Address *</label>
                       <input
                         type="email"
-                        id="email"
                         required
                         placeholder="hello@yourcafe.in"
                         value={formData.email}
@@ -265,11 +312,11 @@ export const ClientsAndContact: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Brew Methods */}
+                  {/* 5 Required Brew Methods per customer feedback */}
                   <div className="form-group">
                     <label>How do you brew? (Select all that apply)</label>
                     <div className="brew-checkboxes-grid">
-                      {['Espresso', 'Pour Over / Manual Filter', 'French Press / Aeropress', 'Cold Brew', 'Batch Brew'].map(
+                      {['pour over', 'aeropress', 'french press', 'espresso', 'cold brew'].map(
                         (method) => {
                           const isChecked = formData.brewMethods.includes(method);
                           return (
@@ -277,9 +324,9 @@ export const ClientsAndContact: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={isChecked}
-                                onChange={() => handleCheckboxChange(method)}
+                                onChange={() => handleBrewMethodToggle(method)}
                               />
-                              <span>{method}</span>
+                              <span style={{ textTransform: 'capitalize' }}>{method}</span>
                             </label>
                           );
                         }
@@ -287,12 +334,26 @@ export const ClientsAndContact: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Cupping Session Checkbox */}
+                  <div className="cupping-checkbox-row">
+                    <label className="checkbox-label-cupping">
+                      <input
+                        type="checkbox"
+                        checked={formData.bookCuppingSession}
+                        onChange={(e) => setFormData({ ...formData, bookCuppingSession: e.target.checked })}
+                      />
+                      <span>
+                        <strong>Interested in Roastery Cupping / Espresso Testing?</strong> Check this box if you’d like to book a slot for your head barista to test on our commercial equipment in Lucknow.
+                      </span>
+                    </label>
+                  </div>
+
                   <div className="form-group">
-                    <label htmlFor="notes">Notes or Target Flavor Profile</label>
+                    <label htmlFor="notes">Notes, Target Flavor Profile, or Packaging Branding details</label>
                     <textarea
                       id="notes"
                       rows={3}
-                      placeholder="e.g. Looking for a nutty, chocolatey espresso that pairs well with milk."
+                      placeholder="e.g. We are looking for custom white-label packaging with our logo, and prefer a nutty, chocolatey espresso profile that cuts through milk."
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     />
@@ -305,13 +366,13 @@ export const ClientsAndContact: React.FC = () => {
                   >
                     {submitting ? 'Preparing your request...' : (
                       <>
-                        <Send size={16} /> Request a sample
+                        <Send size={16} /> Submit Request / Book Slot
                       </>
                     )}
                   </button>
 
                   <p className="form-privacy-note">
-                    We only use your contact details to coordinate sample delivery. No spam.
+                    We only use your contact details to coordinate sample delivery or schedule tasting sessions. No spam.
                   </p>
                 </form>
               )}

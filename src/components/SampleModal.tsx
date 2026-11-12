@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, CheckCircle2, Sparkles } from 'lucide-react';
+import { FSSAILogo } from './BrandIcons';
 
 interface SampleModalProps {
   isOpen: boolean;
@@ -13,7 +14,9 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
     phone: '',
     email: '',
     city: '',
+    serviceInterest: 'Free Sample Pack',
     samplePreference: 'Ratnagiri YC-17 (Single Origin Light Roast)',
+    formatPreference: 'Whole Beans',
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,10 +47,10 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
         {submitted ? (
           <div className="modal-success">
             <CheckCircle2 size={48} className="text-orange" />
-            <h3 className="modal-title">Sample requested.</h3>
+            <h3 className="modal-title">Request received!</h3>
             <p className="modal-text">
-              We have noted your request for <strong>{formData.business || 'your setup'}</strong>.
-              Our roaster will follow up at <strong>{formData.phone || formData.email}</strong> to coordinate shipping.
+              We have noted your interest in <strong>{formData.serviceInterest}</strong> ({formData.formatPreference}) for <strong>{formData.business || 'your team'}</strong>.
+              Our roaster will connect with you via <strong>{formData.phone || formData.email}</strong> to coordinate dispatch or confirm your cupping session.
             </p>
             <button
               type="button"
@@ -62,32 +65,64 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
           <div>
             <div className="modal-header">
               <span className="pill-tag pill-forest">
-                <Sparkles size={13} className="text-orange" /> FREE B2B SAMPLE
+                <Sparkles size={13} className="text-orange" /> LUCKNOW COFFEE ROASTERS
               </span>
-              <h3 className="modal-title">Request a sample</h3>
+              <h3 className="modal-title">Samples, White-Label & Cupping</h3>
               <p className="modal-subtitle">
-                Freshly roasted in Lucknow and dispatched directly to your bar.
+                Freshly roasted in small batches and tailored for your cafe bar or home setup.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="modal-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>What are you looking for?</label>
+                  <select
+                    value={formData.serviceInterest}
+                    onChange={(e) => setFormData({ ...formData, serviceInterest: e.target.value })}
+                  >
+                    <option value="Free Sample Pack">Free Coffee Sample Pack (B2B)</option>
+                    <option value="White-Label Coffee">White-Label Branding (Packets with our cafe's brand)</option>
+                    <option value="Cupping & Tasting Session">Book a Cupping & Tasting Session at Lucknow Roastery</option>
+                    <option value="Custom Roast Profiling">Custom Roast Profiling for our Espresso Machine</option>
+                    <option value="B2B Wholesale Supply">B2B Wholesale Supply</option>
+                    <option value="Home Brew Coffee">Retail Coffee (Whole Bean or Ground)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Format Preference</label>
+                  <select
+                    value={formData.formatPreference}
+                    onChange={(e) => setFormData({ ...formData, formatPreference: e.target.value })}
+                  >
+                    <option value="Whole Beans">Whole Beans (For grinders & espresso bars)</option>
+                    <option value="Ground for Pour Over">Freshly Ground: Pour Over (V60 / Kalita)</option>
+                    <option value="Ground for AeroPress">Freshly Ground: AeroPress</option>
+                    <option value="Ground for French Press">Freshly Ground: French Press</option>
+                    <option value="Ground for Espresso">Freshly Ground: Espresso</option>
+                    <option value="Ground for Cold Brew">Freshly Ground: Cold Brew</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="form-group">
-                <label>Sample Profile Preference</label>
+                <label>Coffee Profile / Origin Selection</label>
                 <select
                   value={formData.samplePreference}
                   onChange={(e) => setFormData({ ...formData, samplePreference: e.target.value })}
                 >
                   <option value="Ratnagiri YC-17 (Single Origin Light Roast)">
-                    Ratnagiri YC-17 — Single Origin Light Roast (Jasmin Tea, Raspberry & Nutty)
+                    Ratnagiri YC-17 — Single Origin Light Roast (Jasmine Tea, Raspberry & Nutty)
                   </option>
                   <option value="Signature House Espresso Blend">
-                    Signature House Espresso Blend (Rich Crema, Dark Chocolate & Almond)
+                    Signature House Espresso Blend (Rich Crema, Dark Chocolate & Toasted Hazelnut)
                   </option>
-                  <option value="Pour Over / Filter Sampler">
-                    Manual Pour-Over Filter Sampler
+                  <option value="White-Label Custom Blend Consultation">
+                    White-Label Blend (To be branded in our own packaging)
                   </option>
-                  <option value="Custom Profile Consultation">
-                    Custom Profile (Dialed for our machine)
+                  <option value="Cupping Table Session (Multiple Origins)">
+                    Roastery Cupping Table (Multiple experimental test roasts)
                   </option>
                 </select>
               </div>
@@ -98,7 +133,7 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
                   <input
                     type="text"
                     required
-                    placeholder="Name"
+                    placeholder="e.g. Rahul Verma"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -108,7 +143,7 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
                   <input
                     type="text"
                     required
-                    placeholder="Business Name"
+                    placeholder="e.g. Blue Door Cafe or Home Brewer"
                     value={formData.business}
                     onChange={(e) => setFormData({ ...formData, business: e.target.value })}
                   />
@@ -121,17 +156,17 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
                   <input
                     type="tel"
                     required
-                    placeholder="+91..."
+                    placeholder="+91 98765 43210"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
                 <div className="form-group">
-                  <label>City *</label>
+                  <label>City / Location *</label>
                   <input
                     type="text"
                     required
-                    placeholder="City"
+                    placeholder="e.g. Lucknow, Delhi NCR, Kanpur"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   />
@@ -156,10 +191,17 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
               >
                 {loading ? 'Submitting...' : (
                   <>
-                    <Send size={16} /> Request a sample
+                    <Send size={16} /> Submit Request
                   </>
                 )}
               </button>
+
+              <div className="modal-fssai-row">
+                <FSSAILogo width={46} height={26} />
+                <span className="modal-fssai-text">
+                  Licensed Roastery • <strong>Lic No.: 22726743000645</strong>
+                </span>
+              </div>
             </form>
           </div>
         )}

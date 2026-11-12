@@ -7,34 +7,45 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 480px;
+  max-width: 660px;
   margin: 0 auto;
+  padding: 0 0.5rem;
+}
+
+@media (min-width: 1440px) {
+  .packet-showcase-wrapper {
+    max-width: 720px;
+  }
 }
 
 /* Control Pills */
 .packet-controls-bar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
   background-color: var(--cream-card);
-  padding: 0.35rem;
+  padding: 0.4rem 0.65rem;
   border-radius: var(--radius-pill);
   border: 1px solid rgba(27, 61, 60, 0.12);
-  box-shadow: 0 4px 12px rgba(27, 61, 60, 0.06);
+  box-shadow: 0 4px 14px rgba(27, 61, 60, 0.08);
   z-index: 10;
+  max-width: 100%;
 }
 
 .packet-toggle-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.9rem;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
   border-radius: var(--radius-pill);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--forest);
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .packet-toggle-btn:hover {
@@ -47,14 +58,15 @@
 }
 
 .packet-toggle-btn.btn-icon-only {
-  padding: 0.45rem 0.65rem;
+  padding: 0.5rem 0.75rem;
 }
 
 /* 3D Scene viewport */
 .packet-scene {
   position: relative;
-  width: 360px;
-  height: 550px;
+  width: 100%;
+  max-width: 620px;
+  height: 740px;
   perspective: 1200px;
   cursor: grab;
   display: flex;
@@ -62,6 +74,14 @@
   justify-content: center;
   touch-action: none;
   user-select: none;
+  overflow: visible;
+}
+
+@media (min-width: 1440px) {
+  .packet-scene {
+    max-width: 680px;
+    height: 790px;
+  }
 }
 
 .packet-scene:active {
@@ -76,10 +96,85 @@
   pointer-events: auto;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 1200px) {
+  .packet-showcase-wrapper {
+    max-width: 580px;
+  }
   .packet-scene {
-    width: 310px;
-    height: 490px;
+    max-width: 540px;
+    height: 680px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .packet-showcase-wrapper {
+    max-width: 520px;
+  }
+  .packet-scene {
+    max-width: 480px;
+    height: 640px;
+  }
+}
+
+@media (max-width: 768px) {
+  .packet-showcase-wrapper {
+    max-width: 460px;
+  }
+  .packet-scene {
+    max-width: 410px;
+    height: 560px;
+  }
+}
+
+@media (max-width: 480px) {
+  .packet-showcase-wrapper {
+    max-width: 100%;
+    padding: 0 0.25rem;
+  }
+  .packet-controls-bar {
+    gap: 0.35rem;
+    padding: 0.25rem 0.45rem;
+    margin-bottom: 0.65rem;
+    max-width: 100%;
+  }
+  .packet-toggle-btn {
+    padding: 0.34rem 0.62rem;
+    font-size: 0.74rem;
+    gap: 0.22rem;
+  }
+  .packet-toggle-btn.btn-icon-only {
+    padding: 0.34rem 0.45rem;
+  }
+  .packet-scene {
+    max-width: min(100%, 300px);
+    width: 100%;
+    height: 400px;
+  }
+}
+
+@media (max-width: 360px) {
+  .packet-scene {
+    max-width: min(100%, 260px);
+    height: 350px;
+  }
+  .packet-toggle-btn {
+    padding: 0.28rem 0.42rem;
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .packet-scene {
+    max-width: min(100%, 230px);
+    height: 310px;
+  }
+  .packet-controls-bar {
+    gap: 0.15rem;
+    padding: 0.15rem 0.2rem;
+  }
+  .packet-toggle-btn {
+    padding: 0.24rem 0.34rem;
+    font-size: 0.62rem;
   }
 }
 
@@ -699,7 +794,7 @@
   padding: 0.75rem 1rem;
   box-shadow: 0 8px 24px rgba(27, 61, 60, 0.12);
   width: 90%;
-  max-width: 330px;
+  max-width: min(92vw, 320px);
   animation: slideUpFade 0.25s ease-out;
   z-index: 20;
 }

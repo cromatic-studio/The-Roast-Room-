@@ -1,5 +1,56 @@
 import * as THREE from 'three';
 
+const textureLoader = typeof window !== 'undefined' ? new THREE.TextureLoader() : null;
+
+/**
+ * Loads high-resolution official packaging textures from the vector artwork.
+ */
+export function loadPacketTexture(
+  url: string,
+  anisotropy = 16,
+  onLoad?: (texture: THREE.Texture) => void
+): THREE.Texture {
+  if (!textureLoader) {
+    return new THREE.Texture();
+  }
+  const texture = textureLoader.load(
+    url,
+    (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = anisotropy;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = true;
+      tex.needsUpdate = true;
+      if (onLoad) onLoad(tex);
+    },
+    undefined,
+    (err) => {
+      console.error('Failed to load packet texture:', url, err);
+    }
+  );
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = anisotropy;
+  return texture;
+}
+
+let cachedLogoCreamImg: HTMLImageElement | null = null;
+
+export function getLogoCreamImage(): HTMLImageElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!cachedLogoCreamImg) {
+    cachedLogoCreamImg = new Image();
+    cachedLogoCreamImg.crossOrigin = 'anonymous';
+    cachedLogoCreamImg.src = '/logo-cream.png';
+  }
+  return cachedLogoCreamImg;
+}
+
+// Preload official brand logo
+if (typeof window !== 'undefined') {
+  getLogoCreamImage();
+}
+
 /**
  * Generates an ultra-crisp, high-DPI CanvasTexture for the Front face of the coffee bag.
  */
@@ -112,100 +163,18 @@ export function createFrontTexture(anisotropy = 4): THREE.CanvasTexture {
   ctx.fill();
   ctx.restore();
 
-  // 5. Brand Lockup: THE ROAST ROOM COFFEE ROASTERS
-  ctx.save();
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#F9F6EA';
+  // 5. Official Brand Logo: THE ROAST ROOM • COFFEE ROASTERS
+  const logoImg = getLogoCreamImage();
+  const logoW = 540;
+  const logoH = Math.round(logoW * (1924 / 2048));
+  const logoX = 1024 - Math.round(logoW / 2);
+  const logoY = 280;
 
-  // "THE"
-  ctx.font = '800 38px "Outfit", sans-serif';
-  ctx.letterSpacing = '14px';
-  ctx.fillText('THE', 1024, 380);
+  if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+    ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+  }
 
-  // "ROAST"
-  ctx.font = '900 132px "Outfit", sans-serif';
-  ctx.letterSpacing = '6px';
-  ctx.fillText('ROAST', 1024, 500);
-
-  // "ROOM" with bean as first 'O'
-  ctx.font = '900 132px "Outfit", sans-serif';
-  ctx.letterSpacing = '4px';
-  // Measure 'R'
-  const rWidth = ctx.measureText('R').width;
-  const oWidth = ctx.measureText('O').width;
-  const mWidth = ctx.measureText('M').width;
-  const beanWidth = 92;
-  const totalRoomWidth = rWidth + beanWidth + oWidth + mWidth + 40;
-  let currX = 1024 - totalRoomWidth / 2;
-
-  // 'R'
-  ctx.textAlign = 'left';
-  ctx.fillText('R', currX, 620);
-  currX += rWidth + 12;
-
-  // Bean as first 'O'
-  ctx.save();
-  const beanCenterY = 578;
-  const beanCenterX = currX + beanWidth / 2;
-  ctx.translate(beanCenterX, beanCenterY);
-  ctx.rotate(-0.1);
-  // Outer bean body
-  ctx.fillStyle = '#F9F6EA';
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 42, 54, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Inner hollow
-  ctx.fillStyle = '#1B3D3C';
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 31, 44, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Bean wavy cleft
-  ctx.strokeStyle = '#F9F6EA';
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(0, -42);
-  ctx.bezierCurveTo(-14, -15, 14, 15, 0, 42);
-  ctx.stroke();
-  ctx.restore();
-  currX += beanWidth + 14;
-
-  // 'O' and 'M'
-  ctx.fillStyle = '#F9F6EA';
-  ctx.fillText('O', currX, 620);
-  currX += oWidth + 8;
-  ctx.fillText('M', currX, 620);
-
-  // "COFFEE ROASTERS" + underline
-  ctx.textAlign = 'center';
-  ctx.font = '700 34px "Outfit", sans-serif';
-  ctx.letterSpacing = '10px';
-  ctx.fillText('COFFEE ROASTERS', 1024, 690);
-
-  // Decorative brush underline
-  ctx.strokeStyle = '#F9F6EA';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(760, 715);
-  ctx.quadraticCurveTo(1024, 735, 1288, 715);
-  ctx.stroke();
-  ctx.restore();
-
-  // 6. Degassing Aroma Valve Location Marker (Y ≈ 780)
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(1024, 785, 34, 0, Math.PI * 2);
-  ctx.fillStyle = '#122625';
-  ctx.fill();
-  ctx.strokeStyle = '#295452';
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(1024, 785, 10, 0, Math.PI * 2);
-  ctx.fillStyle = '#081211';
-  ctx.fill();
-  ctx.restore();
-
-  // 7. Center Roasted Coffee Beans Hero Illustration (Y: 820 to 1100)
+  // 6. Center Roasted Coffee Beans Hero Illustration (Y: 820 to 1100)
   ctx.save();
   const drawRoastedBean = (
     cx: number,
@@ -358,38 +327,46 @@ export function createFrontTexture(anisotropy = 4): THREE.CanvasTexture {
 
   // --- Card Right Column: 2x2 Specs Grid ---
   const gridX = cardX + 1040;
-  const colW = 360;
+  const colW = 380;
 
   // Spec Item 1: ORIGIN
   ctx.fillStyle = '#6E8A73';
-  ctx.font = '700 24px "Outfit", sans-serif';
+  ctx.font = '700 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '1.5px';
   ctx.fillText('ORIGIN', gridX, cardY + 75);
   ctx.fillStyle = '#1B3D3C';
-  ctx.font = '800 34px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('📍 Ratnagiri Estate', gridX, cardY + 118);
+  ctx.font = '700 32px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
+  ctx.fillText('Ratnagiri Estate', gridX, cardY + 118);
 
   // Spec Item 2: ROAST PROFILE
   ctx.fillStyle = '#6E8A73';
-  ctx.font = '700 24px "Outfit", sans-serif';
+  ctx.font = '700 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '1.5px';
   ctx.fillText('ROAST PROFILE', gridX + colW, cardY + 75);
   ctx.fillStyle = '#D95F2D';
-  ctx.font = '800 34px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('🔥 Light Roast', gridX + colW, cardY + 118);
+  ctx.font = '700 32px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
+  ctx.fillText('Light Roast', gridX + colW, cardY + 118);
 
   // Spec Item 3: PROCESS
   ctx.fillStyle = '#6E8A73';
-  ctx.font = '700 24px "Outfit", sans-serif';
+  ctx.font = '700 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '1.5px';
   ctx.fillText('PROCESS', gridX, cardY + 195);
   ctx.fillStyle = '#1B3D3C';
-  ctx.font = '800 34px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '700 32px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
   ctx.fillText('Culture Natural', gridX, cardY + 238);
 
   // Spec Item 4: ROASTED FOR
   ctx.fillStyle = '#6E8A73';
-  ctx.font = '700 24px "Outfit", sans-serif';
+  ctx.font = '700 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '1.5px';
   ctx.fillText('ROASTED FOR', gridX + colW, cardY + 195);
   ctx.fillStyle = '#1B3D3C';
-  ctx.font = '800 34px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '700 32px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
   ctx.fillText('Signature Bar', gridX + colW, cardY + 238);
 
   // Divider Line
@@ -480,6 +457,157 @@ export function createFrontTexture(anisotropy = 4): THREE.CanvasTexture {
   ctx.fillStyle = '#1B3D3C';
   ctx.font = '900 52px "Outfit", sans-serif';
   ctx.fillText('1 KG', colNetX, bottomY + 54);
+
+  // --- Sub-Card Provenance & Craft Authentication Divider ---
+  ctx.save();
+  ctx.strokeStyle = '#D8D0B5';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 8]);
+  ctx.beginPath();
+  ctx.moveTo(padLeft, cardY + 570);
+  ctx.lineTo(cardX + cardW - 64, cardY + 570);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // --- Provenance Micro-Specs Row (Y: cardY + 610) ---
+  const provY = cardY + 610;
+
+  // 1. Elevation
+  ctx.fillStyle = '#6E8A73';
+  ctx.font = '700 20px "Outfit", sans-serif';
+  ctx.letterSpacing = '1px';
+  ctx.fillText('ELEVATION', padLeft, provY);
+  ctx.fillStyle = '#1B3D3C';
+  ctx.font = '700 26px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
+  ctx.fillText('1,350 - 1,450 MASL', padLeft, provY + 34);
+
+  // 2. Varietal
+  const colVarX = cardX + 510;
+  ctx.fillStyle = '#6E8A73';
+  ctx.font = '700 20px "Outfit", sans-serif';
+  ctx.letterSpacing = '1px';
+  ctx.fillText('VARIETAL', colVarX, provY);
+  ctx.fillStyle = '#1B3D3C';
+  ctx.font = '700 26px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
+  ctx.fillText('Catuai & SLN-9', colVarX, provY + 34);
+
+  // 3. Harvest & Lot
+  const colLotX = cardX + 960;
+  ctx.fillStyle = '#6E8A73';
+  ctx.font = '700 20px "Outfit", sans-serif';
+  ctx.letterSpacing = '1px';
+  ctx.fillText('HARVEST & LOT', colLotX, provY);
+  ctx.fillStyle = '#1B3D3C';
+  ctx.font = '700 26px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
+  ctx.fillText('2024 Crop • LOT 17', colLotX, provY + 34);
+
+  // 4. SCA Specialty Grade Seal Badge
+  const badgeX = cardX + 1440;
+  const badgeY = cardY + 595;
+  const badgeW = 320;
+  const badgeH = 58;
+  ctx.save();
+  ctx.fillStyle = '#1B3D3C';
+  ctx.beginPath();
+  ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#D4A359';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = '#D4A359';
+  ctx.font = '800 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '1.5px';
+  ctx.textAlign = 'center';
+  ctx.fillText('SCA SCORE: 87.5+', badgeX + badgeW / 2, badgeY + 28);
+  ctx.fillStyle = '#F9F6EA';
+  ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '2px';
+  ctx.fillText('SPECIALTY GRADE ARABICA', badgeX + badgeW / 2, badgeY + 48);
+  ctx.restore();
+
+  // --- Bottom Card Barcode & Verification Line (Y: cardY + 685) ---
+  const barY = cardY + 675;
+
+  // Realistic craft coffee barcode pattern
+  const barX = padLeft;
+  const barW = 340;
+  const barH = 46;
+  const barPattern = [3, 2, 4, 1, 3, 5, 2, 4, 1, 2, 4, 3, 2, 5, 1, 3, 4, 2, 3, 1, 4, 2, 5, 3, 2, 4, 1, 3, 2, 4];
+  let curBarX = barX;
+  ctx.fillStyle = '#1B3D3C';
+  for (let b = 0; b < barPattern.length && curBarX < barX + barW; b++) {
+    const w = barPattern[b];
+    if (b % 2 === 0) {
+      ctx.fillRect(curBarX, barY, w * 3, barH);
+    }
+    curBarX += w * 3 + 2;
+  }
+
+  // Barcode Serial code underneath
+  ctx.fillStyle = '#6E8A73';
+  ctx.font = '700 17px "Outfit", monospace';
+  ctx.letterSpacing = '2.5px';
+  ctx.textAlign = 'left';
+  ctx.fillText('* TRR - RTN - 2024 - LOT 17 *', barX + 8, barY + barH + 20);
+
+  // Authenticity statement right of barcode
+  ctx.fillStyle = '#1B3D3C';
+  ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0.5px';
+  ctx.fillText('100% SHADE-GROWN • SMALL-BATCH ARTISAN ROASTED', cardX + 510, barY + 28);
+  ctx.fillStyle = '#6E8A73';
+  ctx.font = '600 18px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Direct trade partnership with Ratnagiri Estate • Chikmagalur, Karnataka', cardX + 510, barY + 54);
+
+  ctx.restore(); // Restores card context
+
+  // 10. --- Dark Forest Green Foil Heritage Ribbon (Y: 1988 to 2040) ---
+  // Authentic metallic gold & burnt-orange roastery ribbon along the bottom pouch curve
+  ctx.save();
+
+  // Gold decorative divider rules
+  ctx.strokeStyle = '#D4A359';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(180, 2014);
+  ctx.lineTo(440, 2014);
+  ctx.moveTo(1608, 2014);
+  ctx.lineTo(1868, 2014);
+  ctx.stroke();
+
+  // Diamond icons flanking the badge
+  ctx.fillStyle = '#D4A359';
+  ctx.font = '700 20px "Outfit", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('◆', 465, 2021);
+  ctx.fillText('◆', 1583, 2021);
+
+  // Center Roastery Ribbon Pill
+  const ribbonX = 490;
+  const ribbonY = 1990;
+  const ribbonW = 1068;
+  const ribbonH = 48;
+
+  ctx.fillStyle = 'rgba(217, 95, 45, 0.16)';
+  ctx.beginPath();
+  ctx.roundRect(ribbonX, ribbonY, ribbonW, ribbonH, 24);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(212, 163, 89, 0.75)';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+
+  // Ribbon Headline
+  ctx.fillStyle = '#F9F6EA';
+  ctx.font = '800 23px "Outfit", sans-serif';
+  ctx.letterSpacing = '3.5px';
+  ctx.textAlign = 'center';
+  ctx.fillText('ROASTED & PACKED WITH PASSION IN LUCKNOW, INDIA', 1024, ribbonY + 32);
 
   ctx.restore();
 
@@ -597,30 +725,86 @@ export function createBackTexture(anisotropy = 4): THREE.CanvasTexture {
 
   ctx.fillStyle = '#F9F6EA';
   ctx.font = '500 26px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('100% Pure Roasted Whole Bean Coffee.', leftColX, 1030);
+  ctx.fillText('100% Freshly Roasted Coffee.', leftColX, 1030);
   ctx.fillText('No artificial additives, chicory, or preservatives.', leftColX, 1070);
 
-  // Section: FSSAI Compliance Box
+  // Section: FSSAI Compliance Box (Matching official packet design)
   const fssaiY = 1170;
   ctx.strokeStyle = '#8FA894';
   ctx.lineWidth = 2.5;
   ctx.strokeRect(leftColX, fssaiY, colWidth, 140);
 
+  // White rounded badge for official FSSAI logo
+  const badgeW = 116;
+  const badgeH = 68;
+  const badgeX = leftColX + 32;
+  const badgeY = fssaiY + 36;
+  const badgeR = 12;
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeR);
+  } else {
+    ctx.rect(badgeX, badgeY, badgeW, badgeH);
+  }
+  ctx.fill();
+
+  // FSSAI text inside white badge
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  // "fss" in dark navy
+  ctx.font = '900 italic 28px "Outfit", sans-serif';
+  ctx.fillStyle = '#1B365D';
+  ctx.fillText('fss', badgeX + 16, badgeY + badgeH / 2 - 2);
+
+  // "ai" in orange
+  ctx.fillStyle = '#E87722';
+  ctx.fillText('ai', badgeX + 62, badgeY + badgeH / 2 - 2);
+
+  // Green leaf dot above the 'i'
+  ctx.fillStyle = '#43B02A';
+  ctx.beginPath();
+  ctx.ellipse(badgeX + 90, badgeY + 18, 5, 3.5, Math.PI / 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Underline stripes: Navy, Orange, Green
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = '#1B365D';
+  ctx.beginPath();
+  ctx.moveTo(badgeX + 16, badgeY + badgeH - 12);
+  ctx.lineTo(badgeX + 48, badgeY + badgeH - 12);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#E87722';
+  ctx.beginPath();
+  ctx.moveTo(badgeX + 48, badgeY + badgeH - 12);
+  ctx.lineTo(badgeX + 74, badgeY + badgeH - 12);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#43B02A';
+  ctx.beginPath();
+  ctx.moveTo(badgeX + 74, badgeY + badgeH - 12);
+  ctx.lineTo(badgeX + 100, badgeY + badgeH - 12);
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Text next to white badge: "Lic No.: 22726743000645"
   ctx.fillStyle = '#F9F6EA';
-  ctx.font = '800 38px "Outfit", sans-serif';
-  ctx.fillText('fssai', leftColX + 36, fssaiY + 60);
+  ctx.font = '800 30px "Outfit", sans-serif';
+  ctx.fillText('Lic No.: 22726743000645', leftColX + 168, fssaiY + 68);
 
-  ctx.font = '700 26px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Lic. No. 12724055000421', leftColX + 160, fssaiY + 60);
-
-  ctx.font = '500 22px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = '#8FA894';
-  ctx.fillText('Registered Food Business Operator (FSSAI)', leftColX + 36, fssaiY + 105);
+  ctx.fillText('Food Safety and Standards Authority of India', leftColX + 168, fssaiY + 104);
 
   // Social Community
   ctx.fillStyle = '#F9F6EA';
   ctx.font = '700 28px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('📸 @theroastroom.coffee', leftColX, 1380);
+  ctx.fillText('@theroastroom.coffee', leftColX, 1380);
   ctx.font = '500 24px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = '#8FA894';
   ctx.fillText('Share your daily brew setups with us', leftColX, 1420);
@@ -644,7 +828,7 @@ export function createBackTexture(anisotropy = 4): THREE.CanvasTexture {
   ctx.fillText('THE ROAST ROOM COFFEE ROASTERS', rightColX, 810);
 
   ctx.font = '500 26px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Ground floor, 1/59, Vastu Khand,', rightColX, 855);
+  ctx.fillText('Ground floor, 1/58, Vastu Khand,', rightColX, 855);
   ctx.fillText('Gomti Nagar, Lucknow 226010,', rightColX, 895);
   ctx.fillText('Uttar Pradesh, India.', rightColX, 935);
 
@@ -687,6 +871,78 @@ export function createBackTexture(anisotropy = 4): THREE.CanvasTexture {
   drawBatchRow('Best Before:', '6 Months from MFD', batchY + 220);
   drawBatchRow('Net Quantity:', '1000g (1 KG)', batchY + 275, true);
 
+  // --- Lower Left: GS1 Official EAN-13 Barcode Card ---
+  const backBarY = 1620;
+  ctx.fillStyle = '#F9F6EA';
+  ctx.beginPath();
+  ctx.roundRect(leftColX, backBarY, colWidth, 260, 20);
+  ctx.fill();
+
+  ctx.fillStyle = '#1B3D3C';
+  ctx.font = '800 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '1.5px';
+  ctx.fillText('TRACEABILITY & AUTHENTICATION', leftColX + 32, backBarY + 44);
+
+  // Barcode pattern
+  const bcX = leftColX + 32;
+  const bcY = backBarY + 68;
+  const bcW = 420;
+  const bcH = 90;
+  const bcPattern = [4, 2, 3, 5, 2, 4, 3, 2, 5, 2, 3, 4, 2, 5, 3, 2, 4, 2, 3, 5, 3, 2, 4, 5, 2, 3, 4];
+  let curBcX = bcX;
+  ctx.fillStyle = '#1B3D3C';
+  for (let b = 0; b < bcPattern.length && curBcX < bcX + bcW; b++) {
+    const w = bcPattern[b];
+    if (b % 2 === 0) {
+      ctx.fillRect(curBcX, bcY, w * 3, bcH);
+    }
+    curBcX += w * 3 + 2;
+  }
+
+  // Barcode digits
+  ctx.fillStyle = '#1B3D3C';
+  ctx.font = '700 24px "Outfit", monospace';
+  ctx.letterSpacing = '6px';
+  ctx.fillText('8 901234 567890', bcX + 30, bcY + bcH + 34);
+
+  // Origin authentication note
+  ctx.fillStyle = '#6E8A73';
+  ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '0px';
+  ctx.fillText('Scan QR / Barcode for lot cupping notes & roaster log.', leftColX + 480, backBarY + 110);
+  ctx.fillText('100% Direct-Farm Sourced • Single-Estate Grade.', leftColX + 480, backBarY + 145);
+
+  // --- Lower Right: Sustainability & Freshness Badges ---
+  const pillStartY = 1620;
+  const drawEcoPill = (text: string, iconSymbol: string, yPos: number) => {
+    ctx.strokeStyle = '#8FA894';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(rightColX, yPos, colWidth, 72, 16);
+    ctx.stroke();
+
+    ctx.fillStyle = '#D95F2D';
+    ctx.font = '800 24px "Outfit", sans-serif';
+    ctx.fillText(iconSymbol, rightColX + 28, yPos + 46);
+
+    ctx.fillStyle = '#F9F6EA';
+    ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(text, rightColX + 75, yPos + 46);
+  };
+
+  drawEcoPill('High-Barrier Multi-Layer Foil • Oxygen Protected', '◆', pillStartY);
+  drawEcoPill('Degassing One-Way Valve • Retains Aromatic Crema', '◆', pillStartY + 92);
+  drawEcoPill('100% Roasted In Lucknow • Small Batch Hand-Crafted', '◆', pillStartY + 184);
+
+  ctx.restore();
+
+  // --- Bottom Roastery Footer Strip ---
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#D4A359';
+  ctx.font = '800 22px "Outfit", sans-serif';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('THE ROAST ROOM • SPECIALTY COFFEE ROASTERS • EST. 2024', 1024, 2008);
   ctx.restore();
 
   // Create Three.js CanvasTexture
@@ -766,10 +1022,10 @@ export function createTopSealTexture(): THREE.CanvasTexture {
   canvas.height = 128;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.fillStyle = '#112524';
+  ctx.fillStyle = '#083533';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = '#234b4a';
+  ctx.strokeStyle = '#104543';
   ctx.lineWidth = 4;
   for (let x = 10; x < canvas.width; x += 16) {
     ctx.beginPath();
@@ -793,10 +1049,10 @@ export function createBottomTexture(): THREE.CanvasTexture {
   canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.fillStyle = '#152F2E';
+  ctx.fillStyle = '#083533';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = '#1D3F3E';
+  ctx.strokeStyle = '#0e4340';
   ctx.lineWidth = 12;
   ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 

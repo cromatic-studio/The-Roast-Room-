@@ -45,7 +45,7 @@ export const HOTSPOTS_3D: Hotspot3D[] = [
   {
     id: 'roastery',
     title: 'Gomti Nagar, Lucknow',
-    detail: 'Ground floor, 1/59, Vastu Khand, Gomti Nagar, Lucknow 226010. Roasted and dispatched weekly across India.',
+    detail: 'Ground floor, 1/58, Vastu Khand, Gomti Nagar, Lucknow 226010. Roasted and dispatched weekly across India.',
     side: 'back',
     pos: new THREE.Vector3(0.42, -0.15, -0.46),
     normal: new THREE.Vector3(0.1, 0, -1).normalize(),

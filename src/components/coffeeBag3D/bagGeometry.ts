@@ -133,7 +133,7 @@ export function createCoffeeBagGeometry(
     }
 
     const groupCount = indices.length - groupStart;
-    return { groupStart, groupCount };
+    return { startIndex, groupStart, groupCount };
   }
 
   // 1. FRONT PANEL: Left (-W/2) to Right (+W/2)
@@ -203,31 +203,36 @@ export function createCoffeeBagGeometry(
   // 6. BOTTOM BASE CAP (Closed bottom plate so bag is solid from underneath)
   const bottomStart = indices.length;
   const botY = -halfH;
-  const { D: botD, W: botW } = getBagProfile(0.0);
   const botVertStart = positions.length / 3;
 
   // Center vertex
   positions.push(0, botY, 0);
   uvs.push(0.5, 0.5);
 
-  const numBotSegments = 32;
-  for (let i = 0; i <= numBotSegments; i++) {
-    const angle = (i / numBotSegments) * Math.PI * 2;
-    // Stadium / rounded rectangle bottom profile
-    const cosA = Math.cos(angle);
-    const sinA = Math.sin(angle);
-    const bx = (botW / 2) * Math.sign(cosA) * Math.pow(Math.abs(cosA), 0.7);
-    const bz = (botD / 2) * Math.sign(sinA) * Math.pow(Math.abs(sinA), 0.85);
-
-    positions.push(bx, botY, bz);
-    uvs.push(0.5 + 0.5 * cosA, 0.5 + 0.5 * sinA);
+  // Collect bottom perimeter vertices from all 4 panels in continuous order
+  const botPerimeter: number[] = [];
+  // Front panel bottom row (left to right)
+  for (let i = 0; i < Nfront; i++) {
+    botPerimeter.push(gFront.startIndex + i);
+  }
+  // Right gusset bottom row (front to back)
+  for (let i = 0; i < Ngusset; i++) {
+    botPerimeter.push(gRight.startIndex + i);
+  }
+  // Back panel bottom row (right to left)
+  for (let i = 0; i < Nback; i++) {
+    botPerimeter.push(gBack.startIndex + i);
+  }
+  // Left gusset bottom row (back to front)
+  for (let i = 0; i < Ngusset; i++) {
+    botPerimeter.push(gLeft.startIndex + i);
   }
 
-  for (let i = 0; i < numBotSegments; i++) {
+  for (let i = 0; i < botPerimeter.length; i++) {
     const center = botVertStart;
-    const p1 = botVertStart + 1 + i;
-    const p2 = botVertStart + 1 + i + 1;
-    // Winding clockwise so normal faces downward
+    const p1 = botPerimeter[i];
+    const p2 = botPerimeter[(i + 1) % botPerimeter.length];
+    // Winding clockwise so normal faces downward (-Y)
     indices.push(center, p2, p1);
   }
   const bottomCount = indices.length - bottomStart;

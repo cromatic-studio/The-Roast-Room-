@@ -1,158 +1,24 @@
 import React from 'react';
 
-// Brand Wordmark Logo as per Brand Guidelines
+// Official Brand Wordmark & Emblem Logo
 export const BrandLogo: React.FC<{
   variant?: 'light' | 'dark';
   className?: string;
   showTagline?: boolean;
-}> = ({ variant = 'dark', className = '', showTagline = false }) => {
+  style?: React.CSSProperties;
+}> = ({ variant = 'dark', className = '', style }) => {
   const isLight = variant === 'light';
-  const textColor = isLight ? '#F9F6EA' : '#1B3D3C';
-  const strokeColor = isLight ? '#F9F6EA' : '#1B3D3C';
+  const logoSrc = isLight ? '/logo-cream.svg' : '/logo-forest.svg';
 
   return (
-    <div className={`brand-logo-lockup ${className}`} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-      <svg
-        viewBox="0 0 280 135"
-        style={{ width: '100%', maxWidth: '240px', height: 'auto', overflow: 'visible' }}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* "THE" */}
-        <text
-          x="140"
-          y="20"
-          textAnchor="middle"
-          fill={textColor}
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '13px',
-            fontWeight: 800,
-            letterSpacing: '0.22em',
-          }}
-        >
-          THE
-        </text>
-
-        {/* "ROAST" */}
-        <text
-          x="140"
-          y="56"
-          textAnchor="middle"
-          fill={textColor}
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '38px',
-            fontWeight: 900,
-            letterSpacing: '0.04em',
-          }}
-        >
-          ROAST
-        </text>
-
-        {/* "ROOM" with bean as the first 'O' */}
-        {/* 'R' */}
-        <text
-          x="62"
-          y="98"
-          textAnchor="middle"
-          fill={textColor}
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '44px',
-            fontWeight: 900,
-          }}
-        >
-          R
-        </text>
-
-        {/* Bean replacing the first 'O' */}
-        <g transform="translate(106, 81) rotate(18) scale(0.85)">
-          {/* Outer Bean Body */}
-          <path
-            d="M 0,-18 C 14,-18 18,-6 18,3 C 18,15 11,21 0,21 C -11,21 -18,15 -18,3 C -18,-6 -14,-18 0,-18 Z"
-            fill={textColor}
-          />
-          {/* Curved bean center crease */}
-          <path
-            d="M 0,-15 C -4,-6 5,6 0,18"
-            stroke={isLight ? '#1B3D3C' : '#F9F6EA'}
-            strokeWidth="3.2"
-            strokeLinecap="round"
-            fill="none"
-          />
-        </g>
-
-        {/* Second 'O' */}
-        <text
-          x="166"
-          y="98"
-          textAnchor="middle"
-          fill={textColor}
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '44px',
-            fontWeight: 900,
-          }}
-        >
-          O
-        </text>
-
-        {/* 'M' */}
-        <text
-          x="218"
-          y="98"
-          textAnchor="middle"
-          fill={textColor}
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '44px',
-            fontWeight: 900,
-          }}
-        >
-          M
-        </text>
-
-        {/* Swooping underline */}
-        <path
-          d="M 38 107 C 105 113, 175 113, 242 107"
-          stroke={strokeColor}
-          strokeWidth="3.8"
-          strokeLinecap="round"
-        />
-
-        {/* "COFFEE ROASTERS" */}
-        <text
-          x="140"
-          y="126"
-          textAnchor="middle"
-          fill={textColor}
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '11px',
-            fontWeight: 800,
-            letterSpacing: '0.28em',
-          }}
-        >
-          COFFEE ROASTERS
-        </text>
-      </svg>
-
-      {showTagline && (
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.78rem',
-            fontWeight: 800,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: '#D95F2D',
-            marginTop: '0.2rem',
-          }}
-        >
-          Every bean tells a story.
-        </span>
-      )}
+    <div className={`brand-logo-lockup ${className}`} style={{ display: 'inline-flex', alignItems: 'center', ...style }}>
+      <img
+        src={logoSrc}
+        alt="The Roast Room - Coffee Roasters • Every Bean Tells A Story"
+        className="brand-logo-img"
+        loading="eager"
+        decoding="async"
+      />
     </div>
   );
 };
@@ -366,3 +232,102 @@ export const EspressoIcon: React.FC<{ size?: number; color?: string }> = ({ size
     <path d="M14 3v2" />
   </svg>
 );
+
+export const ColdBrewIcon: React.FC<{ size?: number; color?: string }> = ({ size = 22, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 3h12v3H6z" />
+    <path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6" />
+    <line x1="10" y1="11" x2="14" y2="11" strokeDasharray="2 2" />
+    <line x1="9" y1="14" x2="15" y2="14" strokeDasharray="2 2" />
+    <path d="M12 2v2" />
+  </svg>
+);
+
+export const WhiteLabelIcon: React.FC<{ size?: number; color?: string }> = ({ size = 22, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+    <line x1="7" y1="7" x2="7.01" y2="7" />
+  </svg>
+);
+
+// Official FSSAI Logo emblem inside a rounded white badge
+export const FSSAILogo: React.FC<{
+  width?: number;
+  height?: number;
+  className?: string;
+}> = ({ width = 64, height = 36, className = '' }) => (
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 100 56"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`fssai-svg-logo ${className}`}
+    role="img"
+    aria-label="FSSAI Logo"
+  >
+    {/* White rounded rectangle background */}
+    <rect width="100" height="56" rx="9" fill="#FFFFFF" />
+
+    {/* "fss" letters in official navy */}
+    <text
+      x="13"
+      y="37"
+      fontFamily="'Outfit', -apple-system, sans-serif"
+      fontSize="27"
+      fontWeight="900"
+      fontStyle="italic"
+      fill="#1B365D"
+      letterSpacing="-0.5px"
+    >
+      fss
+    </text>
+
+    {/* "ai" letters in warm food-safe orange */}
+    <text
+      x="54"
+      y="37"
+      fontFamily="'Outfit', -apple-system, sans-serif"
+      fontSize="27"
+      fontWeight="900"
+      fontStyle="italic"
+      fill="#E87722"
+      letterSpacing="-0.5px"
+    >
+      ai
+    </text>
+
+    {/* Green leaf accent dot on top of 'i' */}
+    <path
+      d="M 77 15 C 80 12, 85 11, 88 13 C 88 16, 86 20, 81 21 C 79 19, 78 17, 77 15 Z"
+      fill="#43B02A"
+    />
+
+    {/* Tri-color bottom stripe */}
+    <rect x="13" y="44" width="28" height="2.8" rx="1" fill="#1B365D" />
+    <rect x="41" y="44" width="24" height="2.8" rx="1" fill="#E87722" />
+    <rect x="65" y="44" width="22" height="2.8" rx="1" fill="#43B02A" />
+  </svg>
+);
+
+// Standardized FSSAI Compliance Badge displaying Lic No.: 22726743000645
+export const FSSAIComplianceBadge: React.FC<{
+  className?: string;
+  variant?: 'card' | 'inline' | 'compact';
+}> = ({ className = '', variant = 'card' }) => (
+  <div className={`fssai-badge-lockup fssai-${variant} ${className}`}>
+    <div className="fssai-logo-wrapper">
+      <FSSAILogo width={variant === 'compact' ? 52 : 62} height={variant === 'compact' ? 30 : 36} />
+    </div>
+    <div className="fssai-badge-meta">
+      <div className="fssai-lic-row">
+        <span className="fssai-lic-tag">Lic No.:</span>
+        <strong className="fssai-lic-number">22726743000645</strong>
+      </div>
+      {variant !== 'compact' && (
+        <span className="fssai-authority-sub">Food Safety and Standards Authority of India</span>
+      )}
+    </div>
+  </div>
+);
+

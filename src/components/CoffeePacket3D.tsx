@@ -2,44 +2,27 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import {
   createCoffeeBagGeometry,
-  createDegassingValveMesh,
 } from './coffeeBag3D/bagGeometry';
 import {
-  createFrontTexture,
-  createBackTexture,
-  createGussetTexture,
+  loadPacketTexture,
   createTopSealTexture,
   createBottomTexture,
   createBagNormalTexture,
 } from './coffeeBag3D/bagTextures';
-import { HOTSPOTS_3D, type Hotspot3D } from './coffeeBag3D/bagHotspots';
 import {
   RotateCcw,
-  Sparkles,
-  Eye,
-  Info,
-  Compass,
   Play,
   Pause,
 } from 'lucide-react';
 import './CoffeePacket3D.css';
 
-interface ProjectedHotspot extends Hotspot3D {
-  screenX: number;
-  screenY: number;
-  visible: boolean;
-}
-
 export const CoffeePacket3D: React.FC<{
   onRequestSample?: () => void;
-}> = ({ onRequestSample }) => {
+}> = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [activeHotspot, setActiveHotspot] = useState<Hotspot3D | null>(null);
-  const [activeView, setActiveView] = useState<'front' | 'back' | 'side'>('front');
-  const [autoRotate, setAutoRotate] = useState<boolean>(false);
-  const [projectedHotspots, setProjectedHotspots] = useState<ProjectedHotspot[]>([]);
+  const [autoRotate, setAutoRotate] = useState<boolean>(true);
 
   // Three.js instances stored in refs so they persist across re-renders
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -48,6 +31,13 @@ export const CoffeePacket3D: React.FC<{
   const bagMeshRef = useRef<THREE.Mesh | null>(null);
   const bagGroupRef = useRef<THREE.Group | null>(null);
   const shadowMeshRef = useRef<THREE.Mesh | null>(null);
+
+  // Pointer down tracking for tap vs drag discrimination
+  const pointerDownRef = useRef({
+    x: 0,
+    y: 0,
+    time: 0,
+  });
 
   // Rotation control states
   const rotRef = useRef({
@@ -60,7 +50,7 @@ export const CoffeePacket3D: React.FC<{
     prevY: 0,
     hoverX: 0,
     hoverY: 0,
-    autoRotate: false,
+    autoRotate: true,
   });
 
   // Keep autoRotate in sync with ref
@@ -68,38 +58,8 @@ export const CoffeePacket3D: React.FC<{
     rotRef.current.autoRotate = autoRotate;
   }, [autoRotate]);
 
-  // Smoothly rotate to predefined views using shortest-path rotation
-  const setViewAngle = useCallback((view: 'front' | 'back' | 'side') => {
-    setActiveView(view);
-    setActiveHotspot(null);
-    const twoPi = Math.PI * 2;
-    const curY = rotRef.current.targetY;
-
-    if (view === 'front') {
-      const k = Math.round(curY / twoPi);
-      rotRef.current.targetY = k * twoPi;
-      rotRef.current.targetX = 0.05;
-    } else if (view === 'back') {
-      const k = Math.round((curY - Math.PI) / twoPi);
-      rotRef.current.targetY = k * twoPi + Math.PI;
-      rotRef.current.targetX = 0.05;
-    } else if (view === 'side') {
-      const k = Math.round((curY - Math.PI * 0.5) / twoPi);
-      rotRef.current.targetY = k * twoPi + Math.PI * 0.5;
-      rotRef.current.targetX = 0.05;
-    }
-  }, []);
-
   const flip180 = useCallback(() => {
     rotRef.current.targetY += Math.PI;
-    setActiveHotspot(null);
-    const twoPi = Math.PI * 2;
-    const normY = ((rotRef.current.targetY % twoPi) + twoPi) % twoPi;
-    if (normY < Math.PI * 0.5 || normY > Math.PI * 1.5) {
-      setActiveView('front');
-    } else {
-      setActiveView('back');
-    }
   }, []);
 
   // Main Three.js Scene Setup & Render Loop
@@ -115,9 +75,29 @@ export const CoffeePacket3D: React.FC<{
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // 2. Camera: 40 FOV gives natural telephoto product-shot perspective without wide-angle distortion
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 50);
-    camera.position.set(0, 0, 5.2);
+    // 2. Camera: 34 FOV gives studio perspective with generous vertical & horizontal clearance
+    const fov = 34;
+    const camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 50);
+
+    const updateCameraPosition = (aspect: number) => {
+      const halfFovRad = THREE.MathUtils.degToRad(fov / 2);
+      const tanHalfFov = Math.tan(halfFovRad);
+      
+      // Calibrated visible height and width so the bag (height 3.1) and ground shadow
+      // have generous, elegant headroom & footroom at all 360-degree rotation & pitch tilt angles
+      const minVisibleHeight = 3.95; 
+      const minVisibleWidth = 2.75;  
+
+      const distForHeight = minVisibleHeight / (2 * tanHalfFov);
+      const distForWidth = minVisibleWidth / (2 * aspect * tanHalfFov);
+      const targetDist = Math.max(distForHeight, distForWidth);
+
+      // Perfectly center the camera on the bag pivot
+      camera.position.set(0, -0.05, targetDist);
+      camera.lookAt(0, -0.05, 0);
+    };
+
+    updateCameraPosition(width / height);
     cameraRef.current = camera;
 
     // 3. WebGL Renderer
@@ -163,12 +143,20 @@ export const CoffeePacket3D: React.FC<{
     scene.add(bagGroup);
     bagGroupRef.current = bagGroup;
 
-    // 6. Textures & Materials
+    // 6. Textures & Materials - Loaded directly from official vector artwork (300 DPI)
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-    let frontTex = createFrontTexture(maxAnisotropy);
-    let backTex = createBackTexture(maxAnisotropy);
-    const rightGussetTex = createGussetTexture('THE ROAST ROOM • LUCKNOW', '100% ARABICA & ROBUSTA • FRESH ROAST', maxAnisotropy);
-    const leftGussetTex = createGussetTexture('EVERY BEAN TELLS A STORY', 'CRAFT COFFEE ROASTERS • GOMTI NAGAR', maxAnisotropy);
+    const frontTex = loadPacketTexture('/packet_design/page-1.png', maxAnisotropy, () => {
+      frontMat.needsUpdate = true;
+    });
+    const gussetRightTex = loadPacketTexture('/packet_design/page-4.png', maxAnisotropy, () => {
+      rightMat.needsUpdate = true;
+    });
+    const backTex = loadPacketTexture('/packet_design/page-2.png?v=1-58', maxAnisotropy, () => {
+      backMat.needsUpdate = true;
+    });
+    const gussetLeftTex = loadPacketTexture('/packet_design/page-3.png', maxAnisotropy, () => {
+      leftMat.needsUpdate = true;
+    });
     const topSealTex = createTopSealTexture();
     const bottomTex = createBottomTexture();
     const normalTex = createBagNormalTexture();
@@ -177,52 +165,40 @@ export const CoffeePacket3D: React.FC<{
     const frontMat = new THREE.MeshStandardMaterial({
       map: frontTex,
       bumpMap: normalTex,
-      bumpScale: 0.003,
-      roughness: 0.36,
-      metalness: 0.08,
+      bumpScale: 0.002,
+      roughness: 0.35,
+      metalness: 0.04,
     });
 
     const rightMat = new THREE.MeshStandardMaterial({
-      map: rightGussetTex,
-      roughness: 0.40,
-      metalness: 0.08,
+      map: gussetRightTex,
+      roughness: 0.38,
+      metalness: 0.04,
     });
 
     const backMat = new THREE.MeshStandardMaterial({
       map: backTex,
-      roughness: 0.38,
-      metalness: 0.08,
+      roughness: 0.35,
+      metalness: 0.04,
     });
 
     const leftMat = new THREE.MeshStandardMaterial({
-      map: leftGussetTex,
-      roughness: 0.40,
-      metalness: 0.08,
+      map: gussetLeftTex,
+      roughness: 0.38,
+      metalness: 0.04,
     });
 
     const topSealMat = new THREE.MeshStandardMaterial({
       map: topSealTex,
-      roughness: 0.28,
-      metalness: 0.22,
+      roughness: 0.30,
+      metalness: 0.15,
     });
 
     const bottomMat = new THREE.MeshStandardMaterial({
       map: bottomTex,
-      roughness: 0.60,
-      metalness: 0.05,
+      roughness: 0.50,
+      metalness: 0.04,
     });
-
-    // Re-render textures once custom Google Fonts (Outfit & Plus Jakarta Sans) are ready
-    if (document.fonts) {
-      document.fonts.ready.then(() => {
-        const newFront = createFrontTexture(maxAnisotropy);
-        const newBack = createBackTexture(maxAnisotropy);
-        frontMat.map = newFront;
-        frontMat.needsUpdate = true;
-        backMat.map = newBack;
-        backMat.needsUpdate = true;
-      });
-    }
 
     // 7. Bag Geometry Mesh
     const bagGeometry = createCoffeeBagGeometry(3.1, 40, 24, 12, 24);
@@ -234,45 +210,37 @@ export const CoffeePacket3D: React.FC<{
       topSealMat,
       bottomMat,
     ]);
-    bagMesh.position.y = 0.08;
+    bagMesh.position.y = -0.05;
     bagGroup.add(bagMesh);
     bagMeshRef.current = bagMesh;
 
-    // 8. 3D Degassing Aroma Valve Mesh (attached directly to front surface)
-    const valveGroup = createDegassingValveMesh();
-    valveGroup.position.set(0, 0.42, 0.505);
-    valveGroup.rotation.x = -0.06;
-    bagMesh.add(valveGroup);
-
-    // 9. Ground Contact Shadow Mesh
+    // 8. Ground Contact Shadow Mesh
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 256;
     shadowCanvas.height = 256;
     const sCtx = shadowCanvas.getContext('2d')!;
-    const sGrad = sCtx.createRadialGradient(128, 128, 20, 128, 128, 110);
-    sGrad.addColorStop(0, 'rgba(16, 36, 35, 0.45)');
-    sGrad.addColorStop(0.5, 'rgba(16, 36, 35, 0.18)');
-    sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    sCtx.clearRect(0, 0, 256, 256);
+    const sGrad = sCtx.createRadialGradient(128, 128, 0, 128, 128, 120);
+    sGrad.addColorStop(0, 'rgba(20, 35, 30, 0.42)');
+    sGrad.addColorStop(0.35, 'rgba(20, 35, 30, 0.20)');
+    sGrad.addColorStop(0.70, 'rgba(20, 35, 30, 0.05)');
+    sGrad.addColorStop(1, 'rgba(20, 35, 30, 0)');
     sCtx.fillStyle = sGrad;
     sCtx.fillRect(0, 0, 256, 256);
 
     const shadowTex = new THREE.CanvasTexture(shadowCanvas);
-    const shadowGeo = new THREE.PlaneGeometry(3.2, 1.8);
+    const shadowGeo = new THREE.PlaneGeometry(3.6, 2.0);
     const shadowMat = new THREE.MeshBasicMaterial({
       map: shadowTex,
       transparent: true,
       depthWrite: false,
+      toneMapped: false,
     });
     const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
     shadowMesh.rotation.x = -Math.PI / 2;
-    shadowMesh.position.y = -1.55;
+    shadowMesh.position.y = -1.605;
     scene.add(shadowMesh);
     shadowMeshRef.current = shadowMesh;
-
-    // Vectors for hotspot calculations
-    const tempVec = new THREE.Vector3();
-    const tempNorm = new THREE.Vector3();
-    const camDir = new THREE.Vector3();
 
     // 10. Animation Loop
     let animationFrameId: number;
@@ -282,9 +250,9 @@ export const CoffeePacket3D: React.FC<{
 
       const rot = rotRef.current;
 
-      // Handle auto-rotation
+      // Handle auto-rotation: infinite loop circular playing
       if (rot.autoRotate && !rot.isDragging) {
-        rot.targetY += 0.008;
+        rot.targetY += 0.0075;
       }
 
       // Smooth damping interpolation (lerp)
@@ -293,46 +261,21 @@ export const CoffeePacket3D: React.FC<{
       rot.currentX += (rot.targetX - rot.currentX) * lerpFactor;
 
       // Add gentle hover parallax when not actively dragging
-      const hoverTiltX = rot.hoverY * 0.08;
-      const hoverTiltY = rot.hoverX * 0.12;
+      const hoverTiltX = rot.hoverY * 0.04;
+      const hoverTiltY = rot.hoverX * 0.06;
 
       bagGroup.rotation.y = rot.currentY + hoverTiltY;
       bagGroup.rotation.x = rot.currentX + hoverTiltX;
 
-      // Floating gentle breathing bob
-      const bob = Math.sin(currentTime * 0.0016) * 0.035;
-      bagMesh.position.y = 0.08 + bob;
+      // Floating gentle breathing bob with subtle amplitude
+      const bob = Math.sin(currentTime * 0.0016) * 0.015;
+      bagMesh.position.y = -0.05 + bob;
 
       // Shadow breathing
       if (shadowMeshRef.current) {
-        shadowMeshRef.current.scale.set(1 - bob * 0.4, 1 - bob * 0.4, 1);
-        shadowMeshRef.current.position.y = -1.55;
+        shadowMeshRef.current.scale.set(1 - bob * 0.3, 1 - bob * 0.3, 1);
+        shadowMeshRef.current.position.y = -1.605;
       }
-
-      // Project 3D Hotspots to 2D Screen
-      camera.getWorldDirection(camDir);
-      bagMesh.updateMatrixWorld(true);
-
-      const projected: ProjectedHotspot[] = HOTSPOTS_3D.map((h) => {
-        tempVec.copy(h.pos).applyMatrix4(bagMesh.matrixWorld);
-        tempNorm.copy(h.normal).transformDirection(bagMesh.matrixWorld);
-
-        // Facing test: is normal pointing towards the camera?
-        const facing = tempNorm.dot(camDir) < -0.18;
-
-        tempVec.project(camera);
-        const screenX = ((tempVec.x + 1) / 2) * width;
-        const screenY = ((-tempVec.y + 1) / 2) * height;
-
-        return {
-          ...h,
-          screenX,
-          screenY,
-          visible: facing && tempVec.z < 1,
-        };
-      });
-
-      setProjectedHotspots(projected);
 
       // Render Scene
       renderer.render(scene, camera);
@@ -340,12 +283,13 @@ export const CoffeePacket3D: React.FC<{
 
     animationFrameId = requestAnimationFrame(animate);
 
-    // Resize Handler
+    // Resize Handler with responsive aspect camera update
     const handleResize = () => {
       if (!container || !renderer || !camera) return;
       width = container.clientWidth || 360;
-      height = container.clientHeight || 540;
+      height = container.clientHeight || 550;
       camera.aspect = width / height;
+      updateCameraPosition(camera.aspect);
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
     };
@@ -361,8 +305,8 @@ export const CoffeePacket3D: React.FC<{
       bagGeometry.dispose();
       frontTex.dispose();
       backTex.dispose();
-      rightGussetTex.dispose();
-      leftGussetTex.dispose();
+      gussetRightTex.dispose();
+      gussetLeftTex.dispose();
       topSealTex.dispose();
       bottomTex.dispose();
       normalTex.dispose();
@@ -386,6 +330,11 @@ export const CoffeePacket3D: React.FC<{
     rotRef.current.isDragging = true;
     rotRef.current.prevX = e.clientX;
     rotRef.current.prevY = e.clientY;
+    pointerDownRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now(),
+    };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
@@ -401,11 +350,12 @@ export const CoffeePacket3D: React.FC<{
       rot.targetY += deltaX * 0.012;
       rot.targetX += deltaY * 0.008;
 
-      // Clamp vertical pitch tilt so user doesn't turn bag upside down
-      rot.targetX = Math.max(-0.45, Math.min(0.45, rot.targetX));
+      // Clamp vertical pitch tilt to elegant range so bag always stays within viewport boundaries
+      rot.targetX = Math.max(-0.20, Math.min(0.20, rot.targetX));
 
-      // Pause auto-rotate when manually interacting
-      if (autoRotate) {
+      // Pause auto-rotate when manually dragging
+      const dist = Math.hypot(e.clientX - pointerDownRef.current.x, e.clientY - pointerDownRef.current.y);
+      if (dist > 8 && rotRef.current.autoRotate) {
         setAutoRotate(false);
       }
     } else if (containerRef.current) {
@@ -425,6 +375,15 @@ export const CoffeePacket3D: React.FC<{
     } catch {
       // Ignore if pointer capture was already released
     }
+
+    // Direct Tap Detection on 3D Model: if clicked without dragging (<8px delta, <450ms)
+    const dist = Math.hypot(e.clientX - pointerDownRef.current.x, e.clientY - pointerDownRef.current.y);
+    const duration = Date.now() - pointerDownRef.current.time;
+
+    if (dist < 8 && duration < 450 && containerRef.current && cameraRef.current && bagMeshRef.current) {
+      // Toggle play / pause on direct tap of the pouch
+      setAutoRotate(prev => !prev);
+    }
   };
 
   const handlePointerLeave = () => {
@@ -435,40 +394,13 @@ export const CoffeePacket3D: React.FC<{
 
   return (
     <div className="packet-showcase-wrapper">
-      {/* Interactive Controls Bar */}
+      {/* Interactive Controls Bar: Flip 180° & Play/Pause */}
       <div className="packet-controls-bar">
-        <button
-          type="button"
-          className={`packet-toggle-btn ${activeView === 'front' ? 'active' : ''}`}
-          onClick={() => setViewAngle('front')}
-          title="Align to Front View"
-        >
-          <Eye size={15} /> Front View
-        </button>
-
-        <button
-          type="button"
-          className={`packet-toggle-btn ${activeView === 'back' ? 'active' : ''}`}
-          onClick={() => setViewAngle('back')}
-          title="Align to Back & Origin Story"
-        >
-          <Info size={15} /> Back & Origin
-        </button>
-
-        <button
-          type="button"
-          className={`packet-toggle-btn ${activeView === 'side' ? 'active' : ''}`}
-          onClick={() => setViewAngle('side')}
-          title="Inspect Gusset Fold"
-        >
-          <Compass size={15} /> Side Gusset
-        </button>
-
         <button
           type="button"
           className="packet-toggle-btn"
           onClick={flip180}
-          title="Rotate pouch 180 degrees"
+          title="Flip pouch 180°"
         >
           <RotateCcw size={15} /> Flip 180°
         </button>
@@ -477,7 +409,7 @@ export const CoffeePacket3D: React.FC<{
           type="button"
           className={`packet-toggle-btn btn-icon-only ${autoRotate ? 'active' : ''}`}
           onClick={() => setAutoRotate(!autoRotate)}
-          title={autoRotate ? 'Pause 360° rotation' : 'Start 360° auto-rotation'}
+          title={autoRotate ? 'Pause 360° circular loop' : 'Play 360° infinite circular loop'}
           aria-label="Auto-rotate toggle"
         >
           {autoRotate ? <Pause size={14} /> : <Play size={14} />}
@@ -495,73 +427,15 @@ export const CoffeePacket3D: React.FC<{
         style={{ touchAction: 'none' }}
       >
         <canvas ref={canvasRef} className="three-bag-canvas" />
-
-        {/* 3D Projected Hotspot Pins */}
-        {projectedHotspots.map((h) => {
-          if (!h.visible) return null;
-          const isActive = activeHotspot?.id === h.id;
-
-          return (
-            <button
-              key={h.id}
-              type="button"
-              className={`hotspot-pin three-hotspot-pin ${isActive ? 'active' : ''}`}
-              style={{
-                left: `${h.screenX}px`,
-                top: `${h.screenY}px`,
-                transform: 'translate(-50%, -50%)',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveHotspot(isActive ? null : h);
-              }}
-              title={h.title}
-              aria-label={h.title}
-            >
-              <span className="pin-pulse" />
-              <span className="pin-dot" />
-            </button>
-          );
-        })}
       </div>
-
-      {/* Active Hotspot Popover Tooltip */}
-      {activeHotspot && (
-        <div className="hotspot-detail-card">
-          <div className="hotspot-detail-header">
-            <Sparkles size={16} className="text-orange" />
-            <strong>{activeHotspot.title}</strong>
-            <button
-              type="button"
-              className="hotspot-close"
-              onClick={() => setActiveHotspot(null)}
-              aria-label="Close hotspot detail"
-            >
-              ×
-            </button>
-          </div>
-          <p className="hotspot-detail-p">{activeHotspot.detail}</p>
-          {onRequestSample && (
-            <button
-              type="button"
-              className="btn-primary"
-              style={{
-                marginTop: '0.6rem',
-                padding: '0.45rem 0.85rem',
-                fontSize: '0.78rem',
-                width: '100%',
-              }}
-              onClick={onRequestSample}
-            >
-              Request a sample of this roast
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Interactive Drag & Tilt Hint */}
       <div className="packet-interaction-hint">
-        <span>Drag to rotate 360° • Click pins to explore origin details</span>
+        <span>
+          {autoRotate
+            ? '360° Infinite Loop Playing • Drag to explore • Tap Flip 180° or Pause'
+            : 'Paused • Drag to explore • Tap Play to resume loop'}
+        </span>
       </div>
     </div>
   );
