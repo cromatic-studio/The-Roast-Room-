@@ -250,64 +250,26 @@ export const WhiteLabelIcon: React.FC<{ size?: number; color?: string }> = ({ si
   </svg>
 );
 
-// Official FSSAI Logo emblem inside a rounded white badge
+// Official FSSAI Logo emblem from official brand asset
 export const FSSAILogo: React.FC<{
   width?: number;
   height?: number;
   className?: string;
-}> = ({ width = 64, height = 36, className = '' }) => (
-  <svg
+}> = ({ width = 64, height = 34, className = '' }) => (
+  <img
+    src="/fssai.png"
+    alt="FSSAI Logo"
     width={width}
     height={height}
-    viewBox="0 0 100 56"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={`fssai-svg-logo ${className}`}
-    role="img"
-    aria-label="FSSAI Logo"
-  >
-    {/* White rounded rectangle background */}
-    <rect width="100" height="56" rx="9" fill="#FFFFFF" />
-
-    {/* "fss" letters in official navy */}
-    <text
-      x="13"
-      y="37"
-      fontFamily="'Outfit', -apple-system, sans-serif"
-      fontSize="27"
-      fontWeight="900"
-      fontStyle="italic"
-      fill="#1B365D"
-      letterSpacing="-0.5px"
-    >
-      fss
-    </text>
-
-    {/* "ai" letters in warm food-safe orange */}
-    <text
-      x="54"
-      y="37"
-      fontFamily="'Outfit', -apple-system, sans-serif"
-      fontSize="27"
-      fontWeight="900"
-      fontStyle="italic"
-      fill="#E87722"
-      letterSpacing="-0.5px"
-    >
-      ai
-    </text>
-
-    {/* Green leaf accent dot on top of 'i' */}
-    <path
-      d="M 77 15 C 80 12, 85 11, 88 13 C 88 16, 86 20, 81 21 C 79 19, 78 17, 77 15 Z"
-      fill="#43B02A"
-    />
-
-    {/* Tri-color bottom stripe */}
-    <rect x="13" y="44" width="28" height="2.8" rx="1" fill="#1B365D" />
-    <rect x="41" y="44" width="24" height="2.8" rx="1" fill="#E87722" />
-    <rect x="65" y="44" width="22" height="2.8" rx="1" fill="#43B02A" />
-  </svg>
+    style={{
+      width: typeof width === 'number' ? `${width}px` : width,
+      height: typeof height === 'number' ? `${height}px` : height,
+      objectFit: 'contain',
+      display: 'block',
+      borderRadius: '6px',
+    }}
+  />
 );
 
 // Standardized FSSAI Compliance Badge displaying Lic No.: 22726743000645
@@ -317,7 +279,7 @@ export const FSSAIComplianceBadge: React.FC<{
 }> = ({ className = '', variant = 'card' }) => (
   <div className={`fssai-badge-lockup fssai-${variant} ${className}`}>
     <div className="fssai-logo-wrapper">
-      <FSSAILogo width={variant === 'compact' ? 52 : 62} height={variant === 'compact' ? 30 : 36} />
+      <FSSAILogo width={variant === 'compact' ? 56 : 68} height={variant === 'compact' ? 30 : 36} />
     </div>
     <div className="fssai-badge-meta">
       <div className="fssai-lic-row">

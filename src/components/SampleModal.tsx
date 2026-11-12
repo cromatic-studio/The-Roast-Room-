@@ -197,7 +197,7 @@ export const SampleModal: React.FC<SampleModalProps> = ({ isOpen, onClose }) => 
               </button>
 
               <div className="modal-fssai-row">
-                <FSSAILogo width={46} height={26} />
+                <FSSAILogo width={50} height={27} />
                 <span className="modal-fssai-text">
                   Licensed Roastery • <strong>Lic No.: 22726743000645</strong>
                 </span>
